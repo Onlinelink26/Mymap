@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Путь к цели">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1f4e9c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>Путь к цели</title>
+<style>
+:root{--ivory:#fbf6e6;--ivory2:#f1ead2;--blue:#1f4e9c;--navy:#14284b;--line:#e2d9bb;--grayb:#cfd2d8;--grayt:#5d636d}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ivory);color:var(--navy);font:16px/1.35 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif}
+body{padding:0 0 calc(env(safe-area-inset-bottom) + 24px)}
+header{background:var(--blue);color:var(--ivory);padding:calc(env(safe-area-inset-top) + 14px) 14px 14px}
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.cur{font-size:30px;font-weight:700;letter-spacing:-.5px}
+.goal{font-size:14px;opacity:.85}
+.bar{height:10px;background:rgba(251,246,230,.25);border-radius:6px;margin:0;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--ivory);border-radius:6px;transition:width .3s}
+.meta{display:flex;justify-content:space-between;font-size:13px;opacity:.9;flex-wrap:wrap;gap:4px}
+.tabs{display:flex;gap:4px;padding:10px 8px 4px}
+.tabs button{flex:1;padding:8px 0;font-size:13px}
+.tabs button.on{background:var(--blue);border-color:var(--blue);color:var(--ivory)}
+.tabs #undo{flex:0 0 42px;font-size:18px}
+.tabs #undo:disabled{opacity:.35}
+.pane{display:none}.pane.on{display:block}
+.set{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:8px 14px 4px}
+.set label{display:flex;flex-direction:column;justify-content:flex-end;font-size:12px;color:var(--grayt);gap:2px;min-width:0}
+.set label.wide{grid-column:1 / span 2}
+.set input{min-width:0}
+.set input[type=date]{-webkit-appearance:none;appearance:none;display:block;min-height:41px;text-align:left}
+.set button{align-self:end;padding:10px 8px}
+input,textarea{font:inherit;font-size:16px;color:inherit;background:#fffdf5;border:1px solid var(--line);border-radius:8px;padding:8px;width:100%}
+textarea{height:110px;resize:vertical}
+button{font:inherit;border:1px solid var(--line);background:#fffdf5;color:var(--navy);border-radius:8px;padding:8px 12px}
+button.primary{background:var(--blue);border-color:var(--blue);color:var(--ivory)}
+.wrap{padding:6px 8px 0}
+table{border-collapse:separate;border-spacing:0 3px;width:100%;table-layout:fixed}
+th{font-size:11px;color:var(--grayt);font-weight:500;text-align:left;padding:4px}
+td{padding:2px 4px;background:var(--ivory2);vertical-align:middle}
+td:first-child{border-radius:8px 0 0 8px}td:last-child{border-radius:0 8px 8px 0}
+col.c0{width:44px}col.c1{width:26%}col.c2{width:26%}col.c3{width:16%}
+td.n{font-size:13px;color:var(--grayt);text-align:center;padding:2px;line-height:1.1}
+td.n small{display:block;font-size:10px;opacity:.85}
+td.bal{font-variant-numeric:tabular-nums;font-size:15px}
+td input{background:transparent;border:none;padding:8px 2px;font-variant-numeric:tabular-nums}
+td.inc input::placeholder{color:var(--grayt);opacity:1}
+td.act{white-space:nowrap;text-align:right;padding-right:6px}
+td.act button{width:36px;height:36px;padding:0;border-radius:50%;font-size:17px;line-height:1;margin-left:4px;background:transparent;border:1.5px solid var(--grayt);color:var(--grayt)}
+tr.done td{background:var(--blue);color:var(--ivory)}
+tr.done td.n{color:var(--ivory)}
+tr.done td.inc input::placeholder{color:var(--ivory)}
+tr.done button{border-color:var(--ivory);color:var(--ivory)}
+tr.done button.ok{background:var(--ivory);color:var(--blue)}
+tr.miss td{background:var(--grayb);color:var(--grayt)}
+tr.miss button.no{background:var(--grayt);border-color:var(--grayt);color:#fff}
+tr.wdrow td{background:transparent;color:var(--blue);font-size:13px;padding:0 8px 2px;border-radius:0}
+tr.wdrow button{border:none;background:transparent;color:var(--grayt);text-decoration:underline;padding:2px 6px;font-size:13px}
+.panel{display:none;margin:8px 14px 2px;padding:12px;background:var(--ivory2);border-radius:10px}
+.panel.open{display:block}
+.panel .row{display:flex;gap:8px;align-items:end}
+.panel label{display:flex;flex-direction:column;font-size:12px;color:var(--grayt);gap:2px;flex:1}
+.panel .row2{display:flex;gap:8px;margin-top:10px}
+.closedrow td{background:transparent;text-align:center;padding:2px}
+.closedrow button{border:none;background:transparent;color:var(--blue);font-size:14px;text-decoration:underline}
+.weekrow td{background:var(--ivory);border:1px dashed var(--blue);color:var(--blue);font-size:13px;text-align:center;padding:6px}
+.limitrow td{background:transparent;color:#a8322a;font-size:13px;padding:0 8px 2px;border-radius:0}
+tr.over td{background:#a8322a;color:var(--ivory)}
+tr.over td.n,tr.over td.inc input::placeholder{color:var(--ivory)}
+.banner{display:none;margin:8px 14px 0;padding:10px 12px;border-radius:10px;background:#f4d6d2;color:#8a1c14;font-size:14px}
+.banner.on{display:block}
+svg.chart{width:100%;height:auto;display:block;margin:6px 0}
+.bar{position:relative}
+.barwrap{position:relative;padding:10px 0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#tip{display:none;position:absolute;top:100%;margin-top:-4px;z-index:5;background:var(--ivory);color:var(--navy);padding:6px 10px;border-radius:8px;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.3);max-width:290px;pointer-events:none}
+#tip.on{display:block}
+.bar u{position:absolute;top:0;bottom:0;width:2px;background:rgba(20,40,75,.55);text-decoration:none}
+.calc{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:10px;font-size:14px}
+.calc input{width:70px;padding:4px 8px;background:rgba(251,246,230,.15);border:1px solid rgba(251,246,230,.45);color:var(--ivory)}
+.calc b{font-size:16px}
+#stakeNote{font-size:12px;opacity:.9;margin-top:4px}
+#stakeNote:empty{display:none}
+.banner button{margin-left:8px;padding:4px 10px;font-size:14px}
+.banner.info{background:var(--ivory2);color:var(--navy)}
+.banner.info.on{display:flex;align-items:center;justify-content:space-between;gap:8px}
+#lock{display:none;position:fixed;inset:0;z-index:1000;background:var(--ivory);align-items:center;justify-content:center;padding:24px}
+#lock.on{display:flex}
+.lockbox{width:100%;max-width:300px;text-align:center;display:flex;flex-direction:column;gap:10px}
+.lockbox h2{margin:0 0 6px;font-size:22px;color:var(--blue)}
+#lockErr{color:#a8322a;min-height:20px;font-size:14px}
+tr.day{cursor:pointer}
+.needrow td{background:#e6edf8;color:var(--navy);font-size:13px;line-height:1.4;padding:8px 10px;border-radius:8px}
+.needctl{margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.needctl .pill{margin-left:0}
+.needrow td input{background:#fffdf5;border:1px solid var(--line);padding:6px;width:56px}
+.needctl button{padding:6px 12px;font-size:14px;margin-left:auto}
+tr.diffrow td{background:transparent;color:var(--navy);font-size:13px;line-height:1.35;padding:0 8px 4px;border-radius:0}
+.rulesrow{margin-top:5px;color:var(--grayt)}
+.pill{padding:4px 12px;font-size:13px;border-radius:14px;margin-left:6px;background:transparent;border:1.5px solid var(--grayt);color:var(--grayt)}
+.pill.on.ok{background:var(--blue);border-color:var(--blue);color:var(--ivory)}
+.pill.on.bad{background:#a8322a;border-color:#a8322a;color:#fff}
+#discTxt{font-size:12px;opacity:.9;margin-top:4px}
+#discTxt:empty{display:none}
+tr.diffrow .pos{color:var(--blue);font-weight:600}
+tr.diffrow .neg{color:#a8322a;font-weight:600}
+.btnrow{grid-column:1 / -1;display:flex;gap:8px}
+.btnrow button{flex:1;padding:10px 8px}
+#trSheet{display:none;position:fixed;inset:0;z-index:900;background:rgba(20,40,75,.45);align-items:flex-start;justify-content:center;padding:calc(env(safe-area-inset-top) + 60px) 14px 14px}
+#trSheet.on{display:flex}
+.sheetbox{max-height:calc(100vh - 90px);max-height:calc(100dvh - 90px);overflow:auto;width:100%;max-width:420px;background:var(--ivory);border-radius:14px;padding:14px;box-shadow:0 8px 30px rgba(0,0,0,.35)}
+.sheetbox h2{margin:0 0 10px;font-size:17px}
+.sheetbox .row{display:flex;gap:8px;margin-bottom:8px}
+.sheetbox label{display:flex;flex-direction:column;font-size:12px;color:var(--grayt);gap:2px;flex:1;min-width:0}
+.sheetbox .row2{display:flex;gap:8px;margin-top:10px}
+.sheetbox .row2 button{flex:1;padding:10px 6px}
+#trPrev{font-size:15px;font-weight:600;color:var(--blue);min-height:22px}
+select{font:inherit;font-size:16px;color:inherit;background:#fffdf5;border:1px solid var(--line);border-radius:8px;padding:8px;width:100%}
+textarea::placeholder{color:#8c909a}
+.chip{padding:6px 11px;font-size:14px;border-radius:16px;border:1.5px solid var(--grayt);background:transparent;color:var(--grayt);margin:0 4px 6px 0}
+.chip.on{background:var(--blue);border-color:var(--blue);color:var(--ivory)}
+.entry{margin:8px 14px;padding:10px 12px;background:var(--ivory2);border-radius:12px}
+.entry .eh{font-size:13px;color:var(--grayt);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.entry .eh .pos{color:var(--blue);font-weight:600}
+.entry .eh .neg{color:#a8322a;font-weight:600}
+.entry .tag{display:inline-block;padding:2px 9px;border-radius:10px;background:var(--blue);color:var(--ivory);font-size:12px;margin:6px 4px 0 0}
+.entry .et{margin:8px 0 4px;white-space:pre-wrap;word-break:break-word}
+.entry .ef{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--grayt)}
+.entry .ef button{border:none;background:transparent;color:var(--grayt);text-decoration:underline;font-size:13px;padding:4px 6px}
+.hint{font-size:12px;color:var(--grayt);margin:12px 14px}
+.card{margin:8px 14px;padding:4px 14px;background:var(--ivory2);border-radius:12px}
+.card h2{font-size:15px;margin:10px 0 2px}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
+.kv:last-child{border-bottom:none}
+.kv span:first-child{color:var(--grayt)}
+.kv span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.btns{display:flex;gap:8px;margin:8px 14px;flex-wrap:wrap}
+.btns button{flex:1}
+</style>
+</head>
+<body>
+<header>
+  <div class="top"><div class="cur" id="cur">0 ₽</div><div class="goal" id="goalTxt"></div></div>
+  <div class="barwrap" id="barwrap"><div class="bar"><i id="fill"></i><span id="ticks"></span></div><div id="tip"></div></div>
+  <div class="meta"><span><span id="pTxt">0%</span><span id="wTxt"></span></span><span id="dTxt"></span></div>
+  <div class="calc"><span>Ставка</span><input id="risk" type="number" inputmode="decimal" step="any" aria-label="Риск на сделку, процент"><span>% от баланса =</span><b id="stake">0 ₽</b></div>
+  <div id="stakeNote"></div>
+  <div id="discTxt"></div>
+</header>
+
+<div class="banner" id="banner"></div>
+<div class="banner" id="streakBanner"></div>
+<div class="banner info" id="backupBanner"><span id="backupTxt"></span><button id="backupNow" class="primary">Скопировать</button></div>
+
+<nav class="tabs">
+  <button class="on" data-tab="table">Таблица</button>
+  <button data-tab="stats">Итоги</button>
+  <button data-tab="wd">Выводы</button>
+  <button data-tab="diary">Дневник</button>
+  <button data-tab="data">Данные</button>
+  <button id="undo" aria-label="Отменить" disabled>↶</button>
+</nav>
+
+<section class="pane on" id="pane-table">
+  <div class="set">
+    <label>Старт, ₽<input id="start" type="number" inputmode="decimal" step="any"></label>
+    <label>Цель, ₽<input id="goal" type="number" inputmode="decimal" step="any"></label>
+    <label>% в день<input id="defpct" type="number" inputmode="decimal" step="any"></label>
+    <label>Лимит убытка, %<input id="limit" type="number" inputmode="decimal" step="any"></label>
+    <label>Пауза после серии, дн.<input id="streak" type="number" inputmode="numeric" step="1"></label>
+    <label>Мин. ставка, ₽<input id="minStake" type="number" inputmode="decimal" step="any"></label>
+    <div class="btnrow"><button id="wdBtn" class="primary">Вывод</button><button id="trBtn" class="primary">Сделки</button></div>
+    <label class="wide">Дата дня 1<input id="date" type="date"></label>
+  </div>
+  <div class="panel" id="wdPanel">
+    <div class="row">
+      <label>Сумма вывода, ₽<input id="wdAmt" type="number" inputmode="decimal" step="any"></label>
+      <label>В конце дня №<input id="wdDay" type="number" inputmode="numeric" min="1"></label>
+    </div>
+    <div class="hint" id="wdMinHint" style="margin:8px 0 0"></div>
+    <div class="row2"><button id="wdOk" class="primary">Вывести</button><button id="wdCancel">Отмена</button></div>
+  </div>
+  <div class="wrap">
+    <table>
+      <colgroup><col class="c0"><col class="c1"><col class="c2"><col class="c3"><col></colgroup>
+      <thead><tr><th>№</th><th>Баланс</th><th>Доход, ₽</th><th>%</th><th></th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  <p class="hint">✓ — день выполнен (синий), ✕ — пропущен (серый, доход 0). Впиши свою сумму в «Доход» — день станет выполненным, а дни ниже пересчитаются от нового баланса. Изменение % действует на этот день и все следующие. «Вывод» уменьшает баланс в конце выбранного дня; выведенные деньги входят в прогресс к цели. Лимит убытка: если минус за день достигает этого процента от баланса, строка краснеет и появляется предупреждение (0 — выключено). Нажми на строку дня, чтобы увидеть, какая ставка нужна для плана. Победы и поражения вноси кнопкой «Сделки», доход дня посчитается сам. Кнопка ↶ отменяет последнее действие.</p>
+</section>
+
+<section class="pane" id="pane-stats">
+  <div class="card" id="forecast"></div>
+  <div class="card" id="chartCard"></div>
+  <div class="card" id="msCard"></div>
+  <div class="card" id="statsCard"></div>
+  <div class="card" id="trCard"></div>
+  <div class="card" id="discCard"></div>
+</section>
+
+<section class="pane" id="pane-wd">
+  <div class="set" style="grid-template-columns:1fr"><label>Минимальный вывод на бирже, ₽<input id="minWd" type="number" inputmode="decimal" step="any"></label></div>
+  <div class="card" id="wdSum"></div>
+  <div class="card" id="wdList"></div>
+</section>
+
+<section class="pane" id="pane-diary">
+  <div class="card" id="dForm">
+    <h2 id="dFormTitle">Новая запись</h2>
+    <label style="display:flex;flex-direction:column;font-size:12px;color:var(--grayt);gap:2px;width:100px;margin-bottom:8px">День №<input id="dDay" type="number" inputmode="numeric"></label>
+    <div id="dChips"></div>
+    <textarea id="dText" style="height:120px" placeholder="Что чувствовал до, во время и после сделок? Что хотел сделать и что сделал? Что сделаешь иначе?"></textarea>
+    <div class="btns" style="margin:8px 0 10px"><button id="dSave" class="primary">Сохранить</button><button id="dCancel" style="display:none">Отмена</button></div>
+  </div>
+  <div class="card" id="dSum"></div>
+  <div class="set" style="grid-template-columns:1fr"><label>Показать записи<select id="dFilter"></select></label></div>
+  <div id="dList"></div>
+</section>
+
+<section class="pane" id="pane-data">
+  <div class="card">
+    <h2>Сохранить данные</h2>
+    <p class="hint" style="margin:6px 0">Скопируй текст и сохрани в заметки. Так данные не пропадут, если очистить Safari или сменить телефон.</p>
+    <textarea id="exp" readonly></textarea>
+    <div class="btns" style="margin:8px 0 12px"><button id="copyBtn" class="primary">Скопировать</button></div>
+  </div>
+  <div class="card">
+    <h2>Загрузить данные</h2>
+    <p class="hint" style="margin:6px 0">Вставь скопированный текст. Текущие данные будут заменены (можно отменить кнопкой ↶).</p>
+    <textarea id="imp" placeholder="Вставь сюда"></textarea>
+    <div class="btns" style="margin:8px 0 12px"><button id="impBtn" class="primary">Загрузить</button></div>
+  </div>
+  <div class="card">
+    <h2>PIN-код</h2>
+    <p class="hint" id="pinState" style="margin:6px 0"></p>
+    <input id="pin1" type="password" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="Новый PIN, 4–8 цифр">
+    <input id="pin2" type="password" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="Повтори PIN" style="margin-top:8px">
+    <div class="btns" style="margin:8px 0"><button id="pinSet" class="primary">Установить</button><button id="pinOff">Убрать</button></div>
+    <p class="hint" style="margin:0 0 10px">PIN прячет приложение от случайного взгляда, но это не шифрование. Данные хранятся в браузере. Если забудешь PIN, очисти данные сайта в настройках Safari и загрузи бэкап.</p>
+  </div>
+  <div class="btns"><button id="reset">Сбросить всё</button></div>
+</section>
+
+<div id="trSheet"><div class="sheetbox">
+  <h2 id="trTitle">Сделки</h2>
+  <div class="row">
+    <label>День №<input id="trD" type="number" inputmode="numeric"></label>
+    <label>Победы<input id="trW" type="number" inputmode="numeric" min="0"></label>
+    <label>Поражения<input id="trL" type="number" inputmode="numeric" min="0"></label>
+  </div>
+  <div class="row">
+    <label>Ставка, ₽<input id="trS" type="number" inputmode="decimal" step="any"></label>
+    <label>Выплата, %<input id="trP" type="number" inputmode="decimal" step="any"></label>
+  </div>
+  <div id="trPrev"></div>
+  <div class="row2"><button id="trOk" class="primary">Сохранить</button><button id="trDel">Удалить</button><button id="trCancel">Отмена</button></div>
+</div></div>
+
+<div id="lock"><div class="lockbox">
+  <h2>Путь к цели</h2>
+  <input id="lockIn" type="password" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="PIN">
+  <button id="lockBtn" class="primary">Войти</button>
+  <div id="lockErr"></div>
+</div></div>
+
+<script>
+var KEY = "goal-path-v2", mem = null, hist = [];
+function p2(n){ return (n < 10 ? "0" : "") + n; }
+function todayISO(){ var d = new Date(); return d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate()); }
+function fresh(){ return { start: 3000, goal: 1000000, defpct: 3.5, limit: 5, risk: 2, minStake: 100, minWd: 810, payout: 92, trades: {}, rules: {}, calcN: 2, calcW: 2, diary: [], streak: 3, created: Date.now(), lastBackup: 0, date: todayISO(), pcts: [], actual: [], status: [], wd: {} }; }
+function normalize(o){
+  var f = fresh(); f.date = "";
+  for (var k in f) if (o && o[k] !== undefined && o[k] !== null) f[k] = o[k];
+  f.start = +f.start; f.goal = +f.goal; f.defpct = +f.defpct;
+  if (!(f.start > 0)) f.start = 3000;
+  if (!(f.goal > 0)) f.goal = 1000000;
+  if (!(f.defpct > 0)) f.defpct = 3.5;
+  f.limit = +f.limit; if (!(f.limit >= 0)) f.limit = 5;
+  f.risk = +f.risk; if (!(f.risk >= 0)) f.risk = 2;
+  f.minStake = +f.minStake; if (!(f.minStake >= 0)) f.minStake = 100;
+  f.minWd = +f.minWd; if (!(f.minWd >= 0)) f.minWd = 810;
+  f.payout = +f.payout; if (!(f.payout > 0)) f.payout = 92;
+  if (!f.trades || typeof f.trades !== "object" || Array.isArray(f.trades)) f.trades = {};
+  if (!f.rules || typeof f.rules !== "object" || Array.isArray(f.rules)) f.rules = {};
+  f.calcN = Math.round(+f.calcN); if (!(f.calcN >= 1 && f.calcN <= 50)) f.calcN = 2;
+  f.calcW = Math.round(+f.calcW); if (!(f.calcW >= 0)) f.calcW = f.calcN;
+  if (f.calcW > f.calcN) f.calcW = f.calcN;
+  f.diary = Array.isArray(f.diary) ? f.diary.filter(function(x){ return x && typeof x === "object" && x.id && x.d >= 1; }).map(function(x){
+    return { id: +x.id, d: Math.round(+x.d), text: String(x.text || ""), em: Array.isArray(x.em) ? x.em.map(String) : [] };
+  }) : [];
+  f.streak = Math.round(+f.streak); if (!(f.streak >= 0)) f.streak = 3;
+  f.created = +f.created || Date.now(); f.lastBackup = +f.lastBackup || 0;
+  if (typeof f.date !== "string") f.date = "";
+  if (!Array.isArray(f.pcts)) f.pcts = [];
+  if (!Array.isArray(f.actual)) f.actual = [];
+  if (!Array.isArray(f.status)) f.status = [];
+  if (!f.wd || typeof f.wd !== "object" || Array.isArray(f.wd)) f.wd = {};
+  return f;
+}
+function load(){ try { return JSON.parse(localStorage.getItem(KEY)); } catch(e){ return mem; } }
+function save(){ mem = S; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
+var showClosed = true;
+var raw = load();
+var S = raw ? normalize(raw) : fresh();
+if (raw && !raw.created) save();
+
+function r2(x){ return Math.round(x * 100) / 100; }
+function fmt(x){ return r2(x).toLocaleString("ru-RU", {maximumFractionDigits: 2}); }
+function rub(x){ return fmt(x) + " ₽"; }
+function pctAt(i){ return S.pcts[i] != null ? S.pcts[i] : S.defpct; }
+function dateAt(i){
+  if (!S.date) return null;
+  var p = S.date.split("-");
+  return new Date(+p[0], +p[1] - 1, +p[2] + i);
+}
+function dShort(d){ return d ? p2(d.getDate()) + "." + p2(d.getMonth() + 1) : ""; }
+function dFull(d){ return d ? dShort(d) + "." + d.getFullYear() : ""; }
+function lastMarked(){
+  for (var k = S.status.length - 1; k >= 0; k--) if (S.status[k]) return k;
+  return -1;
+}
+
+/* ---------- history (undo) ---------- */
+function snap(){ hist.push(JSON.stringify(S)); if (hist.length > 40) hist.shift(); updUndo(); }
+function updUndo(){ document.getElementById("undo").disabled = !hist.length; }
+function undo(){
+  if (!hist.length) return;
+  S = normalize(JSON.parse(hist.pop()));
+  save(); syncInputs(); render(); updUndo();
+}
+
+/* ---------- model ---------- */
+function compute(){
+  var bal = S.start, earned = 0, i = 0, wdCum = 0, wdDone = 0, last = lastMarked(), rows = [];
+  while (i < 730 && (bal + wdCum < S.goal || i < 1 || i <= last)) {
+    var st = S.status[i] || "";
+    var plan = r2(bal * pctAt(i) / 100);
+    var t = S.trades[i] || null;
+    var income = st === "no" ? 0 : (t ? r2(t.w * t.s * S.payout / 100 - t.l * t.s) : (S.actual[i] != null ? S.actual[i] : plan));
+    var w = r2(Math.min(S.wd[i] || 0, Math.max(0, bal + income)));
+    var limAmt = S.limit > 0 ? r2(bal * S.limit / 100) : 0;
+    var over = st === "ok" && limAmt > 0 && income < 0 && -income >= limAmt;
+    rows.push({ i: i, bal: bal, plan: plan, income: income, w: w, st: st, t: (t && st !== "no") ? t : null, over: over, lim: limAmt, cap: 0 });
+    if (st) earned += income;
+    if (w > 0) { wdCum += w; if (i <= last) wdDone += w; }
+    rows[rows.length - 1].cap = r2(bal + income - w + wdCum);
+    bal = r2(bal + income - w);
+    i++;
+  }
+  var reached = bal + wdCum >= S.goal;
+  return { rows: rows, earned: earned, wdDone: wdDone, wdCum: wdCum, last: last,
+           cur: r2(S.start + earned - wdDone), endDay: i, reached: reached };
+}
+
+/* ---------- render ---------- */
+function presetBtn(i, n, w){
+  var on = S.calcN === n && S.calcW === w;
+  return '<button class="pill ok' + (on ? ' on' : '') + '" data-i="' + i + '" data-k="preset" data-v="' + n + ',' + w + '">' + w + ' из ' + n + '</button>';
+}
+var LM = null;
+var openDay = null;
+function render(){
+  var m = compute(), html = "", rows = m.rows;
+  LM = m;
+  var firstOpen = rows.length;
+  for (var q = 0; q < rows.length; q++) if (!rows[q].st) { firstOpen = q; break; }
+  LM.firstOpen = firstOpen;
+  if (firstOpen > 0) {
+    html += '<tr class="closedrow"><td colspan="5">' + (showClosed
+      ? '<button data-k="toggleClosed">Скрыть закрытые дни</button>'
+      : 'Закрыто дней: ' + firstOpen + ' · <button data-k="toggleClosed">показать</button>') + '</td></tr>';
+  }
+  rows.forEach(function(r){
+    if (!showClosed && r.i < firstOpen) return;
+    var d = dateAt(r.i);
+    var cls = r.over ? "done over" : r.st === "ok" ? "done" : r.st === "no" ? "miss" : "";
+    var val = r.st === "no" ? "" : (r.t ? r.income : (S.actual[r.i] != null ? S.actual[r.i] : ""));
+    var ph = r.st === "no" ? "0" : fmt(r.plan);
+    html += '<tr class="day ' + cls + '" data-i="' + r.i + '"' + (r.i === firstOpen ? ' data-open="1"' : '') + '><td class="n" data-i="' + r.i + '">' + (r.i + 1) + (d ? '<small>' + dShort(d) + '</small>' : '') + '</td>' +
+      '<td class="bal">' + fmt(r.bal) + '</td>' +
+      '<td class="inc"><input type="number" step="any" data-i="' + r.i + '" data-k="inc" placeholder="' + ph + '" value="' + val + '"></td>' +
+      '<td class="pct"><input type="number" inputmode="decimal" step="any" data-i="' + r.i + '" data-k="pct" value="' + pctAt(r.i) + '"></td>' +
+      '<td class="act"><button class="ok" data-i="' + r.i + '" data-k="ok" aria-label="Выполнен">✓</button><button class="no" data-i="' + r.i + '" data-k="no" aria-label="Пропущен">✕</button></td></tr>';
+    if (openDay === r.i) {
+      var nd1 = needStake(r.plan, S.calcN, S.calcW), minS1 = S.minStake > 0 ? S.minStake : 1, ntxt;
+      if (nd1) {
+        ntxt = '<b>Нужная ставка: ' + rub(nd1.stake) + '</b> для плана ' + rub(r.plan) +
+          (nd1.raw < minS1 ? ' (расчёт ' + rub(nd1.raw) + ', но минимум на бирже ' + rub(minS1) + ')' : '') +
+          '<br>Побед в расчёте: ' + S.calcW + ' из ' + S.calcN +
+          (r.bal > 0 ? ' · ' + p1(nd1.stake / r.bal * 100) + '% баланса' : '') +
+          ' · если проиграют все: −' + rub(S.calcN * nd1.stake);
+      } else ntxt = 'При ' + S.calcW + ' победах из ' + S.calcN + ' сделок прибыли нет, план недостижим. Увеличь число побед.';
+      html += '<tr class="needrow"><td colspan="5">' + ntxt +
+        '<div class="needctl">Расклад (побед из сделок):' + presetBtn(r.i, 2, 2) + presetBtn(r.i, 4, 4) + presetBtn(r.i, 4, 3) + '</div>' +
+        '<div class="needctl">Свой: сделок <input type="number" inputmode="numeric" data-i="' + r.i + '" data-k="cn" value="' + S.calcN + '"> побед <input type="number" inputmode="numeric" data-i="' + r.i + '" data-k="cw" value="' + S.calcW + '"><button class="primary" data-i="' + r.i + '" data-k="trades2">Внести сделки</button></div></td></tr>';
+    }
+    if (r.st) {
+      var df = r2(r.income - r.plan), dp = r.plan > 0 ? df / r.plan * 100 : null;
+      var dc = df > 0 ? "pos" : df < 0 ? "neg" : "", sg = df > 0 ? "+" : df < 0 ? "−" : "";
+      var fpct = r.bal > 0 ? " (" + (Math.round(r.income / r.bal * 10000) / 100).toLocaleString("ru-RU") + "% от баланса)" : "";
+      var dtxt = df === 0 ? "ровно по плану" : "Разница " + sg + rub(Math.abs(df)) + (dp !== null ? " · " + sg + (Math.round(Math.abs(dp) * 10) / 10).toLocaleString("ru-RU") + "% к плану" : "");
+      html += '<tr class="diffrow"><td colspan="5">План ' + rub(r.plan) + ' → факт ' + rub(r.income) + fpct + '<br><span class="' + dc + '">' + dtxt + '</span><div class="rulesrow">Правила:' +
+        '<button class="pill ok' + (S.rules[r.i] === "ok" ? " on" : "") + '" data-i="' + r.i + '" data-k="rok">соблюл</button>' +
+        '<button class="pill bad' + (S.rules[r.i] === "bad" ? " on" : "") + '" data-i="' + r.i + '" data-k="rbad">нарушил</button></div></td></tr>';
+    }
+    if (r.t) html += '<tr class="wdrow"><td colspan="5">Сделки: ' + r.t.w + ' поб · ' + r.t.l + ' пор · ставка ' + rub(r.t.s) + ' <button data-i="' + r.i + '" data-k="trades">изменить</button></td></tr>';
+    if (r.over) html += '<tr class="limitrow"><td colspan="5">Лимит убытка исчерпан: −' + rub(-r.income) + ' при допустимых −' + rub(r.lim) + '. На сегодня стоп.</td></tr>';
+    if (r.w > 0) html += '<tr class="wdrow"><td colspan="5">Вывод −' + rub(r.w) + ' <button data-i="' + r.i + '" data-k="wd">убрать</button></td></tr>';
+    if ((r.i + 1) % 7 === 0 || r.i === rows.length - 1) {
+      var ws = r.i - (r.i % 7), wk = rows.slice(ws, r.i + 1), mk = 0, okc = 0, earnedW = 0;
+      wk.forEach(function(x){ if (x.st) { mk++; earnedW += x.income; } if (x.st === "ok") okc++; });
+      if (mk > 0) html += '<tr class="weekrow"><td colspan="5">Неделя ' + (Math.floor(r.i / 7) + 1) + ' · ' + (earnedW < 0 ? "−" : "+") + rub(Math.abs(earnedW)) + ' · выполнено ' + okc + ' из ' + wk.length + '</td></tr>';
+    }
+  });
+  document.getElementById("rows").innerHTML = html;
+
+  var p = Math.max(0, Math.min(100, (m.cur + m.wdDone) / S.goal * 100));
+  document.getElementById("cur").textContent = rub(m.cur);
+  document.getElementById("goalTxt").textContent = "цель " + rub(S.goal);
+  document.getElementById("fill").style.width = p + "%";
+  document.getElementById("pTxt").textContent = (Math.round(p * 100) / 100) + "% пути";
+  document.getElementById("wTxt").textContent = m.wdDone > 0 ? " · выведено " + rub(m.wdDone) : "";
+  var planTxt = m.reached ? "цель по плану: день " + m.endDay + (S.date ? " · " + dFull(dateAt(m.endDay - 1)) : "") : "цель не достигается за 730 дней";
+  document.getElementById("dTxt").textContent = planTxt;
+
+  var bn = document.getElementById("banner"), tr = null;
+  if (S.date) {
+    var t0 = dateAt(0), now = new Date(), t1 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    tr = rows_at(m, Math.round((t1 - t0) / 86400000));
+  } else tr = rows_at(m, m.last);
+  if (tr && tr.over) { bn.textContent = "Лимит убытка исчерпан: −" + rub(-tr.income) + " при допустимых −" + rub(tr.lim) + ". На сегодня стоп."; bn.classList.add("on"); }
+  else { bn.textContent = ""; bn.classList.remove("on"); }
+  // ticks on progress bar
+  var tk = "";
+  [10000, 50000, 100000, 500000].forEach(function(ms){
+    if (ms > S.start && ms < S.goal) tk += '<u style="left:' + (ms / S.goal * 100) + '%"></u>';
+  });
+  document.getElementById("ticks").innerHTML = tk;
+  // stake calculator
+  var rawStake = Math.max(0, m.cur) * S.risk / 100, stakeShown = rawStake, note = "";
+  if (S.minStake > 0 && rawStake < S.minStake) {
+    stakeShown = S.minStake;
+    if (m.cur < S.minStake) note = "Баланс меньше минимальной ставки " + rub(S.minStake) + ".";
+    else note = "Минимальная ставка " + rub(S.minStake) + " — это " + (Math.round(S.minStake / m.cur * 10000) / 100) + "% баланса, выше выбранных " + S.risk + "%.";
+  }
+  document.getElementById("stake").textContent = rub(stakeShown);
+  document.getElementById("stakeNote").textContent = note;
+  document.getElementById("wdMinHint").textContent = S.minWd > 0 ? "Минимальный вывод на бирже: " + rub(S.minWd) : "";
+  // losing streak banner
+  var sb = document.getElementById("streakBanner"), bad = 0, kk;
+  if (S.streak > 0 && m.last >= 0) {
+    for (kk = m.last; kk >= 0; kk--) {
+      var rr = m.rows[kk];
+      if (rr.st === "no" || (rr.st === "ok" && rr.income < 0)) bad++; else break;
+    }
+  }
+  if (S.streak > 0 && bad >= S.streak) { sb.textContent = "Серия неудач: " + bad + " дн. подряд. Сделай паузу и разберись, что пошло не так."; sb.classList.add("on"); }
+  else { sb.textContent = ""; sb.classList.remove("on"); }
+  // backup reminder
+  var bb = document.getElementById("backupBanner"), markedCnt = 0;
+  m.rows.forEach(function(r){ if (r.st) markedCnt++; });
+  var ref = S.lastBackup || S.created, age = Date.now() - ref;
+  if (markedCnt > 0 && age > 7 * 864e5) {
+    document.getElementById("backupTxt").textContent = S.lastBackup ? "Бэкап был " + Math.floor(age / 864e5) + " дн. назад" : "Бэкап ещё не делался";
+    bb.classList.add("on");
+  } else bb.classList.remove("on");
+  var ds = discStats(m);
+  document.getElementById("discTxt").textContent = ds.any ? "Дисциплина: серия " + ds.cur + " дн. · лучшая " + ds.best : "";
+  renderStats(m);
+  renderTrades(m);
+  renderDisc(m);
+  renderChart(m);
+  renderMilestones(m);
+  renderWd(m);
+  renderDiary(m);
+  document.getElementById("exp").value = JSON.stringify(S);
+}
+
+function rows_at(m, i){ return (i >= 0 && i < m.rows.length) ? m.rows[i] : null; }
+
+function renderChart(m){
+  var el = document.getElementById("chartCard");
+  if (m.last < 0) { el.innerHTML = '<h2>План и факт</h2><div class="hint" style="margin:6px 0 8px">Отметь первый день, и здесь появится график.</div>'; return; }
+  var X = Math.min(m.rows.length, Math.max(14, m.last + 8)), plan = [], fact = [], i, b = S.start;
+  for (i = 0; i < X; i++) { b = r2(b + b * pctAt(i) / 100); plan.push(b); }
+  for (i = 0; i < X; i++) if (m.rows[i].st) fact.push({ i: i, v: m.rows[i].cap });
+  var vals = plan.concat(fact.map(function(f){ return f.v; }), [S.start]);
+  var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals);
+  var W = 320, H = 150, pl = 8, pr = 8, pt = 16, pb = 20;
+  function px(i){ return pl + (W - pl - pr) * (X > 1 ? i / (X - 1) : 0); }
+  function py(v){ return pt + (H - pt - pb) * (1 - (v - mn) / ((mx - mn) || 1)); }
+  var pp = plan.map(function(v, k){ return px(k).toFixed(1) + "," + py(v).toFixed(1); }).join(" ");
+  var fp = fact.map(function(f){ return px(f.i).toFixed(1) + "," + py(f.v).toFixed(1); }).join(" ");
+  var svg = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="План и факт">' +
+    '<polyline points="' + pp + '" fill="none" stroke="#5d636d" stroke-width="1.5" stroke-dasharray="4 3"/>' +
+    '<polyline points="' + fp + '" fill="none" stroke="#1f4e9c" stroke-width="2.5" stroke-linejoin="round"/>';
+  fact.forEach(function(f, k){ svg += '<circle cx="' + px(f.i).toFixed(1) + '" cy="' + py(f.v).toFixed(1) + '" r="' + (k === fact.length - 1 ? 4 : 2.5) + '" fill="#1f4e9c"/>'; });
+  svg += '<text x="' + pl + '" y="11" font-size="10" fill="#5d636d">' + fmt(mx) + ' ₽</text>' +
+    '<text x="' + pl + '" y="' + (H - 5) + '" font-size="10" fill="#5d636d">день 1 · ' + fmt(mn) + ' ₽</text>' +
+    '<text x="' + (W - pr) + '" y="' + (H - 5) + '" font-size="10" fill="#5d636d" text-anchor="end">день ' + X + '</text></svg>';
+  el.innerHTML = '<h2>План и факт</h2>' + svg +
+    '<div class="hint" style="margin:0 0 8px">Синяя линия — факт, пунктир — план. Считается баланс плюс выведенное, до дня ' + X + '.</div>';
+}
+
+function msList(){
+  var l = [10000, 50000, 100000, 500000].filter(function(x){ return x > S.start && x < S.goal; });
+  l.push(S.goal);
+  return l;
+}
+function msInfo(m, ms){
+  for (var k = 0; k < m.rows.length; k++) if (m.rows[k].cap >= ms) {
+    var d = dateAt(m.rows[k].i);
+    return (m.rows[k].st ? "✓ день " : "план: день ") + (m.rows[k].i + 1) + (d ? " · " + dFull(d) : "");
+  }
+  return "—";
+}
+function renderMilestones(m){
+  var h = '<h2>Вехи</h2>';
+  msList().forEach(function(ms){ h += kv(rub(ms), msInfo(m, ms)); });
+  document.getElementById("msCard").innerHTML = h;
+}
+
+function kv(a, b){ return '<div class="kv"><span>' + a + '</span><span>' + b + '</span></div>'; }
+
+function renderStats(m){
+  var marked = [], ok = [], miss = [], i;
+  m.rows.forEach(function(r){ if (r.st) marked.push(r); if (r.st === "ok") ok.push(r); if (r.st === "no") miss.push(r); });
+
+  // forecast
+  var f = '<h2>Прогноз</h2>';
+  var planDay = m.reached ? "день " + m.endDay + (S.date ? " · " + dFull(dateAt(m.endDay - 1)) : "") : "не достигается за 730 дней";
+  f += kv("План (" + fmt(S.defpct) + "% в день)", planDay);
+  var avg = null;
+  if (marked.length >= 3) {
+    var sum = 0, cnt = 0;
+    marked.forEach(function(r){ if (r.bal > 0) { sum += r.income / r.bal * 100; cnt++; } });
+    if (cnt) avg = sum / cnt;
+  }
+  if (avg === null) {
+    f += kv("Факт", "нужно минимум 3 отмеченных дня");
+  } else {
+    f += kv("Средний темп по факту", (Math.round(avg * 100) / 100) + "% в день");
+    if (avg <= 0) {
+      f += kv("Цель при таком темпе", "не достигается");
+    } else {
+      var b = m.cur, n = 0;
+      while (b + m.wdDone < S.goal && n < 3650) { b = b * (1 + avg / 100); n++; }
+      if (n >= 3650) {
+        f += kv("Цель при таком темпе", "больше 10 лет");
+      } else {
+        var day = m.last + 1 + n;
+        var diff = m.reached ? day - m.endDay : null;
+        f += kv("Цель при таком темпе", "день " + day + (S.date ? " · " + dFull(dateAt(m.last + n)) : ""));
+        if (diff !== null) f += kv("Относительно плана", diff === 0 ? "в срок" : (diff > 0 ? "позже на " + diff + " дн." : "раньше на " + (-diff) + " дн."));
+      }
+    }
+  }
+  if (avg !== null && avg > 0) f += '<div class="btns" style="margin:8px 0 4px"><button id="applyFact" class="primary" data-avg="' + avg + '">Применить факт к плану: ' + (Math.round(avg * 100) / 100) + '% в день</button></div>';
+  f += '<div class="hint" style="margin:6px 0 8px">Прогноз по факту считает средний процент по всем отмеченным дням, включая пропущенные, и не учитывает будущие выводы.</div>';
+  document.getElementById("forecast").innerHTML = f;
+
+  // stats
+  var s = '<h2>Статистика</h2>';
+  if (!marked.length) {
+    s += '<div class="hint" style="margin:6px 0 8px">Отметь первый день, и здесь появятся цифры.</div>';
+  } else {
+    s += kv("Отмечено дней", marked.length);
+    s += kv("Выполнено / пропущено", ok.length + " / " + miss.length);
+    s += kv("Процент выполнения", Math.round(ok.length / marked.length * 100) + "%");
+    var cs = 0;
+    for (i = m.last; i >= 0 && S.status[i] === "ok"; i--) cs++;
+    var bs = 0, run = 0;
+    for (i = 0; i <= m.last; i++) { if (S.status[i] === "ok") { run++; if (run > bs) bs = run; } else run = 0; }
+    s += kv("Серия подряд (сейчас / лучшая)", cs + " / " + bs);
+    var neg = ok.filter(function(r){ return r.income < 0; }).length;
+    s += kv("Дней в минус", neg);
+    if (S.limit > 0) s += kv("Превышений лимита убытка", ok.filter(function(r){ return r.over; }).length);
+    s += kv("Всего заработано", rub(m.earned));
+    s += kv("Всего выведено", rub(m.wdDone));
+    if (ok.length) {
+      var best = ok[0], worst = ok[0];
+      ok.forEach(function(r){ if (r.income > best.income) best = r; if (r.income < worst.income) worst = r; });
+      var dB = dateAt(best.i), dW = dateAt(worst.i);
+      s += kv("Лучший день", "№" + (best.i + 1) + (dB ? " (" + dShort(dB) + ")" : "") + " · " + rub(best.income));
+      s += kv("Худший день", "№" + (worst.i + 1) + (dW ? " (" + dShort(dW) + ")" : "") + " · " + rub(worst.income));
+    }
+  }
+  document.getElementById("statsCard").innerHTML = s;
+}
+
+function ruleAt(i){ return S.status[i] ? S.rules[i] : undefined; }
+function discStats(m){
+  var any = false, jmax = -1, i;
+  for (i = 0; i < m.rows.length; i++) if (ruleAt(i)) { any = true; jmax = i; }
+  var cur = 0;
+  if (jmax >= 0 && ruleAt(jmax) === "ok") for (i = jmax; i >= 0 && ruleAt(i) === "ok"; i--) cur++;
+  var best = 0, run = 0;
+  for (i = 0; i <= jmax; i++) { if (ruleAt(i) === "ok") { run++; if (run > best) best = run; } else run = 0; }
+  return { any: any, cur: cur, best: best };
+}
+function renderDisc(m){
+  var ds = discStats(m), okc = 0, bad = 0, unrated = 0, okSum = 0, badSum = 0;
+  m.rows.forEach(function(r){
+    if (!r.st) return;
+    var rv = S.rules[r.i], pct = r.bal > 0 ? r.income / r.bal * 100 : 0;
+    if (rv === "ok") { okc++; okSum += pct; }
+    else if (rv === "bad") { bad++; badSum += pct; }
+    else unrated++;
+  });
+  var h = '<h2>Дисциплина</h2>';
+  if (!okc && !bad) {
+    h += '<div class="hint" style="margin:6px 0 8px">Под каждым отмеченным днём есть кнопки «соблюл» и «нарушил». Правила: максимум сделок, стоп после двух минусов подряд, стоп после плана. Успех дня — это соблюдение правил, а не сумма.</div>';
+  } else {
+    h += kv("Серия по правилам (сейчас / лучшая)", ds.cur + " / " + ds.best);
+    h += kv("Соблюдено / нарушено", okc + " / " + bad);
+    h += kv("Процент соблюдения", Math.round(okc / (okc + bad) * 100) + "%");
+    if (unrated) h += kv("Отмеченных дней без оценки правил", unrated);
+    if (okc && bad) {
+      var a = okSum / okc, b = badSum / bad;
+      h += kv("Средний день, правила соблюдены", (a >= 0 ? "+" : "−") + (Math.round(Math.abs(a) * 100) / 100) + "% от баланса");
+      h += kv("Средний день, правила нарушены", (b >= 0 ? "+" : "−") + (Math.round(Math.abs(b) * 100) / 100) + "% от баланса");
+    }
+  }
+  document.getElementById("discCard").innerHTML = h;
+}
+
+function renderTrades(m){
+  var w = 0, l = 0, days = 0;
+  m.rows.forEach(function(r){ if (r.t && r.st === "ok") { w += r.t.w; l += r.t.l; days++; } });
+  var h = '<h2>Сделки</h2>', n = w + l;
+  if (!n) {
+    h += '<div class="hint" style="margin:6px 0 8px">Внеси сделки за день (кнопка «Сделки»), и здесь появится реальный процент побед.</div>';
+  } else {
+    var wr = w / n * 100, be = 100 / (100 + S.payout) * 100, gap = wr - be;
+    h += kv("Дней со сделками", days);
+    h += kv("Сделок всего", n + " (в среднем " + (Math.round(n / days * 10) / 10) + " в день)");
+    h += kv("Победы / поражения", w + " / " + l);
+    h += kv("Процент побед", (Math.round(wr * 10) / 10) + "%");
+    h += kv("Безубыточность (выплата " + fmt(S.payout) + "%)", (Math.round(be * 10) / 10) + "%");
+    h += kv("Запас над безубыточностью", (gap >= 0 ? "+" : "−") + (Math.round(Math.abs(gap) * 10) / 10) + " п.п.");
+  }
+  document.getElementById("trCard").innerHTML = h;
+}
+
+function renderWd(m){
+  var keys = Object.keys(S.wd).map(Number).filter(function(k){ return S.wd[k] > 0; }).sort(function(a, b){ return a - b; });
+  var planned = 0, list = "";
+  keys.forEach(function(k){
+    var row = m.rows[k];
+    var amt = row ? row.w : S.wd[k];
+    var done = k <= m.last;
+    if (!done) planned += amt;
+    var d = dateAt(k);
+    list += '<div class="kv"><span>День ' + (k + 1) + (d ? " · " + dShort(d) : "") + (done ? "" : " (план)") + '</span><span>−' + rub(amt) + ' <button data-i="' + k + '" data-k="wd" style="border:none;background:transparent;text-decoration:underline;color:var(--grayt);padding:2px 4px">убрать</button></span></div>';
+  });
+  document.getElementById("wdSum").innerHTML = '<h2>Итого</h2>' +
+    kv("Выведено", rub(m.wdDone)) + kv("Запланировано", rub(planned)) + kv("Операций", keys.length);
+  document.getElementById("wdList").innerHTML = '<h2>История выводов</h2>' +
+    (list || '<div class="hint" style="margin:6px 0 8px">Выводов пока нет. Добавь первый кнопкой «Вывод» на вкладке «Таблица».</div>');
+}
+
+/* ---------- events ---------- */
+document.getElementById("rows").addEventListener("change", function(e){
+  var el = e.target, i = +el.dataset.i, k = el.dataset.k;
+  if (isNaN(i)) return;
+  var v = el.value.trim().replace(",", ".");
+  if (k === "cn" || k === "cw") {
+    var q = Math.round(parseFloat(v));
+    if (isNaN(q) || q < (k === "cn" ? 1 : 0) || q > 50) { render(); return; }
+    if (k === "cn") { S.calcN = q; if (S.calcW > q) S.calcW = q; } else S.calcW = Math.min(q, S.calcN);
+    save(); render(); return;
+  }
+  snap();
+  if (k === "inc") {
+    if (v === "" || isNaN(+v)) { delete S.actual[i]; delete S.trades[i]; if (S.status[i] === "ok") delete S.status[i]; }
+    else { S.actual[i] = +v; delete S.trades[i]; S.status[i] = "ok"; }
+  } else if (k === "pct" && v !== "" && !isNaN(+v) && +v > 0) {
+    for (var j = i; j < 730; j++) S.pcts[j] = +v;
+  }
+  save(); render();
+});
+
+function rowClick(e){
+  var b = e.target.closest("button");
+  if (!b) return;
+  if (b.dataset.k === "toggleClosed") { showClosed = !showClosed; render(); return; }
+  if (b.dataset.i === undefined) return;
+  var i = +b.dataset.i, k = b.dataset.k;
+  if (k === "trades") { openTrades(i); return; }
+  if (k === "trades2") {
+    openTrades(i);
+    var ndT = needStake(LM.rows[Math.min(i, LM.rows.length - 1)].plan, S.calcN, S.calcW);
+    if (ndT) { $("trS").value = ndT.stake; trPrev(); }
+    return;
+  }
+  if (k === "preset") {
+    var pv = b.dataset.v.split(",");
+    S.calcN = +pv[0]; S.calcW = +pv[1]; save(); render(); return;
+  }
+  snap();
+  if (k === "wd") { delete S.wd[i]; }
+  else if (k === "rok" || k === "rbad") {
+    var rv = k === "rok" ? "ok" : "bad";
+    if (S.rules[i] === rv) delete S.rules[i]; else S.rules[i] = rv;
+  }
+  else {
+    if (S.status[i] === k) delete S.status[i]; else S.status[i] = k;
+    if (S.status[i] === "no") { delete S.actual[i]; delete S.trades[i]; }
+  }
+  save(); render();
+}
+document.getElementById("rows").addEventListener("click", function(e){
+  if (e.target.closest("button")) { rowClick(e); return; }
+  if (e.target.closest("input")) return;
+  var tr = e.target.closest("tr.day");
+  if (tr && tr.dataset.i !== undefined) {
+    var i = +tr.dataset.i;
+    openDay = (openDay === i) ? null : i;
+    render();
+  }
+});
+document.getElementById("wdList").addEventListener("click", rowClick);
+
+function bind(id, key){
+  var el = document.getElementById(id);
+  el.addEventListener("change", function(){
+    if (key === "limit" || key === "risk" || key === "streak" || key === "minStake" || key === "minWd") {
+      var q = parseFloat(el.value.replace(",", "."));
+      if (isNaN(q) || q < 0 || q > ((key === "minStake" || key === "minWd") ? 1e7 : 100)) { el.value = S[key]; return; }
+      if (key === "streak") q = Math.round(q);
+      snap(); S[key] = q; el.value = q; save(); render(); return;
+    }
+    if (key === "date") { snap(); S.date = el.value; save(); render(); return; }
+    var v = parseFloat(el.value.replace(",", "."));
+    if (isNaN(v) || v <= 0) { el.value = S[key]; return; }
+    snap(); S[key] = v; save(); render();
+  });
+}
+bind("start", "start"); bind("goal", "goal"); bind("defpct", "defpct"); bind("date", "date"); bind("limit", "limit"); bind("risk", "risk"); bind("streak", "streak"); bind("minStake", "minStake"); bind("minWd", "minWd");
+
+function syncInputs(){
+  document.getElementById("start").value = S.start;
+  document.getElementById("goal").value = S.goal;
+  document.getElementById("defpct").value = S.defpct;
+  document.getElementById("date").value = S.date;
+  document.getElementById("limit").value = S.limit;
+  document.getElementById("risk").value = S.risk;
+  document.getElementById("streak").value = S.streak;
+  document.getElementById("minStake").value = S.minStake;
+  document.getElementById("minWd").value = S.minWd;
+}
+
+/* tabs */
+document.querySelector(".tabs").addEventListener("click", function(e){
+  var b = e.target.closest("button");
+  if (!b) return;
+  if (b.id === "undo") { undo(); return; }
+  var t = b.dataset.tab;
+  if (!t) return;
+  document.querySelectorAll(".tabs [data-tab]").forEach(function(x){ x.classList.toggle("on", x === b); });
+  document.querySelectorAll(".pane").forEach(function(x){ x.classList.toggle("on", x.id === "pane-" + t); });
+});
+
+/* withdrawal panel */
+var panel = document.getElementById("wdPanel");
+document.getElementById("wdBtn").addEventListener("click", function(){
+  document.getElementById("wdDay").value = Math.max(1, lastMarked() + 1);
+  document.getElementById("wdAmt").value = "";
+  panel.classList.toggle("open");
+  if (panel.classList.contains("open")) document.getElementById("wdAmt").focus();
+});
+document.getElementById("wdCancel").addEventListener("click", function(){ panel.classList.remove("open"); });
+document.getElementById("wdOk").addEventListener("click", function(){
+  var amt = parseFloat(document.getElementById("wdAmt").value.replace(",", "."));
+  var day = Math.round(parseFloat(document.getElementById("wdDay").value));
+  if (isNaN(amt) || amt <= 0 || isNaN(day) || day < 1 || day > 730) { alert("Укажи сумму и номер дня"); return; }
+  if (S.minWd > 0 && amt < S.minWd) { alert("Минимальный вывод на бирже — " + rub(S.minWd)); return; }
+  snap();
+  S.wd[day - 1] = r2((S.wd[day - 1] || 0) + amt);
+  save(); render();
+  panel.classList.remove("open");
+});
+
+/* backup */
+function copyText(text, done){
+  function fb(){
+    var ta = document.createElement("textarea");
+    ta.value = text; ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;font-size:16px";
+    document.body.appendChild(ta); ta.focus(); ta.select(); ta.setSelectionRange(0, text.length);
+    var ok = false; try { ok = document.execCommand("copy"); } catch(e){}
+    document.body.removeChild(ta);
+    if (ok) done();
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fb);
+  else fb();
+}
+function markBackup(){ S.lastBackup = Date.now(); save(); render(); }
+document.getElementById("copyBtn").addEventListener("click", function(){
+  var btn = this;
+  copyText(JSON.stringify(S), function(){
+    markBackup();
+    btn.textContent = "Скопировано"; setTimeout(function(){ btn.textContent = "Скопировать"; }, 1500);
+  });
+});
+document.getElementById("backupNow").addEventListener("click", function(){
+  var btn = this;
+  copyText(JSON.stringify(S), function(){
+    btn.textContent = "Скопировано";
+    setTimeout(function(){ markBackup(); }, 900);
+  });
+});
+document.getElementById("impBtn").addEventListener("click", function(){
+  var t = document.getElementById("imp").value.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
+  var a = t.indexOf("{"), b = t.lastIndexOf("}"), o;
+  if (a < 0 || b <= a) { alert("Не нашёл данные в тексте. Вставь весь скопированный текст."); return; }
+  try { o = JSON.parse(t.slice(a, b + 1)); } catch(e){ alert("Текст повреждён или вставлен не полностью."); return; }
+  if (!o || typeof o !== "object" || o.start === undefined || o.goal === undefined) { alert("Это не похоже на данные приложения."); return; }
+  if (!confirm("Заменить текущие данные загруженными?")) return;
+  snap(); S = normalize(o); save(); syncInputs(); render();
+  document.getElementById("imp").value = "";
+  alert("Данные загружены");
+});
+document.getElementById("reset").addEventListener("click", function(){
+  if (!confirm("Очистить всю таблицу и отметки?")) return;
+  snap(); S = fresh(); save(); syncInputs(); render();
+});
+
+/* trades sheet */
+var trDay = 1;
+function $(id){ return document.getElementById(id); }
+function stakeFor(i){
+  var rows = LM ? LM.rows : [], r = rows.length ? rows[Math.min(i, rows.length - 1)] : null;
+  var bal = r ? r.bal : S.start;
+  return Math.max(S.minStake > 0 ? S.minStake : 1, Math.round(bal * S.risk / 100));
+}
+function trPrev(){
+  var w = parseInt($("trW").value, 10) || 0, l = parseInt($("trL").value, 10) || 0;
+  var st = parseFloat($("trS").value.replace(",", ".")), p = parseFloat($("trP").value.replace(",", "."));
+  var el = $("trPrev");
+  if (isNaN(st) || isNaN(p)) { el.textContent = ""; return; }
+  var inc = r2(w * st * p / 100 - l * st);
+  el.textContent = "Итог дня: " + (inc < 0 ? "−" : "+") + rub(Math.abs(inc));
+}
+function fillTrades(day){
+  trDay = day;
+  var t = S.trades[day - 1], d = dateAt(day - 1);
+  $("trTitle").textContent = "Сделки · день " + day + (d ? " · " + dShort(d) : "");
+  $("trD").value = day;
+  $("trW").value = t ? t.w : "";
+  $("trL").value = t ? t.l : "";
+  $("trS").value = t ? t.s : stakeFor(day - 1);
+  $("trP").value = S.payout;
+  $("trDel").style.display = t ? "" : "none";
+  trPrev();
+}
+function openTrades(i){
+  fillTrades(i + 1);
+  $("trSheet").classList.add("on");
+  $("trW").focus();
+}
+function closeTrades(){ $("trSheet").classList.remove("on"); }
+$("trBtn").addEventListener("click", function(){
+  openTrades(LM && LM.firstOpen != null ? Math.min(LM.firstOpen, 729) : 0);
+});
+["trW", "trL", "trS", "trP"].forEach(function(id){ $(id).addEventListener("input", trPrev); });
+$("trD").addEventListener("change", function(){
+  var d = Math.round(parseFloat($("trD").value));
+  if (isNaN(d) || d < 1 || d > 730) { $("trD").value = trDay; return; }
+  fillTrades(d);
+});
+$("trCancel").addEventListener("click", closeTrades);
+$("trSheet").addEventListener("click", function(e){ if (e.target === this) closeTrades(); });
+$("trDel").addEventListener("click", function(){
+  snap(); delete S.trades[trDay - 1]; save(); render(); closeTrades();
+});
+$("trOk").addEventListener("click", function(){
+  var day = Math.round(parseFloat($("trD").value));
+  var w = parseInt($("trW").value, 10) || 0, l = parseInt($("trL").value, 10) || 0;
+  var st = parseFloat($("trS").value.replace(",", ".")), p = parseFloat($("trP").value.replace(",", "."));
+  if (isNaN(day) || day < 1 || day > 730) { alert("Укажи номер дня"); return; }
+  if (w < 0 || l < 0 || w + l === 0) { alert("Укажи число побед и поражений"); return; }
+  if (!(st > 0)) { alert("Укажи ставку"); return; }
+  if (!(p > 0 && p <= 300)) { alert("Укажи выплату, %"); return; }
+  snap();
+  S.payout = p;
+  S.trades[day - 1] = { w: w, l: l, s: st };
+  delete S.actual[day - 1];
+  S.status[day - 1] = "ok";
+  save(); render(); closeTrades();
+});
+
+/* needed stake */
+function needStake(plan, N, W){
+  var u = W * S.payout / 100 - (N - W);
+  if (u <= 0 || !(plan > 0)) return null;
+  var raw = plan / u;
+  return { raw: raw, u: u, stake: Math.max(Math.ceil(raw - 1e-9), S.minStake > 0 ? S.minStake : 1) };
+}
+function p1(x){ return (Math.round(x * 10) / 10).toLocaleString("ru-RU"); }
+
+/* diary */
+var EMS = ["Спокойствие", "Уверенность", "Азарт", "Жадность", "Страх", "Злость", "Усталость", "Эйфория"];
+var dSel = [], dEdit = null;
+function esc(t){ return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function dChipsUi(){
+  $("dChips").innerHTML = EMS.map(function(e){ return '<button class="chip' + (dSel.indexOf(e) >= 0 ? ' on' : '') + '" data-e="' + e + '">' + e + '</button>'; }).join("");
+}
+function dDefaultDay(){
+  if (S.date) {
+    var t0 = dateAt(0), n = new Date(), t1 = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+    return Math.max(1, Math.min(Math.round((t1 - t0) / 864e5) + 1, 730));
+  }
+  return LM && LM.firstOpen != null ? LM.firstOpen + 1 : 1;
+}
+function resetForm(){
+  dSel = []; dEdit = null;
+  $("dText").value = ""; $("dDay").value = dDefaultDay();
+  $("dFormTitle").textContent = "Новая запись";
+  $("dSave").textContent = "Сохранить";
+  $("dCancel").style.display = "none";
+  dChipsUi();
+}
+function dTime(id){ var d = new Date(id); return p2(d.getDate()) + "." + p2(d.getMonth() + 1) + " " + p2(d.getHours()) + ":" + p2(d.getMinutes()); }
+function renderDiary(m){
+  var list = S.diary.slice().sort(function(a, b){ return b.id - a.id; });
+  var filt = $("dFilter").value || "";
+  var g = {};
+  list.forEach(function(en){
+    (en.em || []).forEach(function(e){
+      var o = g[e] || (g[e] = { n: 0, s: 0, c: 0 }), r = m.rows[en.d - 1];
+      o.n++;
+      if (r && r.st && r.bal > 0) { o.s += r.income / r.bal * 100; o.c++; }
+    });
+  });
+  var keys = Object.keys(g).sort(function(a, b){ return g[b].n - g[a].n; });
+  var h = '<h2>Эмоции и результат дня</h2>';
+  if (!keys.length) h += '<div class="hint" style="margin:6px 0 8px">Отмечай эмоции в записях, и здесь появится, при каких из них день выходит в плюс или в минус.</div>';
+  else {
+    keys.forEach(function(e){
+      var o = g[e], a = o.c ? o.s / o.c : null;
+      h += kv(e, o.n + " зап. · " + (a === null ? "дни не отмечены" : "средний день " + (a >= 0 ? "+" : "−") + p1(Math.abs(a)) + "%"));
+    });
+    h += '<div class="hint" style="margin:6px 0 8px">Средний результат считается по дням, к которым привязаны записи, в процентах от баланса дня.</div>';
+  }
+  $("dSum").innerHTML = h;
+
+  var shown = list.filter(function(en){ return !filt || (en.em || []).indexOf(filt) >= 0; });
+  var out = "";
+  if (!shown.length) out = '<div class="hint">' + (list.length ? "Нет записей с этой эмоцией." : "Записей пока нет. Первую можно сделать выше.") + '</div>';
+  shown.forEach(function(en){
+    var d = dateAt(en.d - 1), r = m.rows[en.d - 1], res = "";
+    if (r && r.st && r.bal > 0) {
+      var pc = r.income / r.bal * 100;
+      res = '<span class="' + (pc >= 0 ? "pos" : "neg") + '">' + (pc >= 0 ? "+" : "−") + p1(Math.abs(pc)) + '% дня' +
+        (S.rules[en.d - 1] === "ok" ? " · правила соблюл" : S.rules[en.d - 1] === "bad" ? " · правила нарушил" : "") + '</span>';
+    }
+    out += '<div class="entry"><div class="eh"><span>День ' + en.d + (d ? " · " + dShort(d) : "") + '</span>' + res + '</div>' +
+      (en.em && en.em.length ? '<div>' + en.em.map(function(e){ return '<span class="tag">' + esc(e) + '</span>'; }).join("") + '</div>' : '') +
+      (en.text ? '<div class="et">' + esc(en.text) + '</div>' : '') +
+      '<div class="ef"><span>записано ' + dTime(en.id) + '</span><span><button data-k="dedit" data-id="' + en.id + '">изменить</button><button data-k="ddel" data-id="' + en.id + '">удалить</button></span></div></div>';
+  });
+  $("dList").innerHTML = out;
+}
+(function(){
+  var sel = $("dFilter");
+  sel.innerHTML = '<option value="">Все записи</option>' + EMS.map(function(e){ return '<option>' + e + '</option>'; }).join("");
+  sel.addEventListener("change", function(){ if (LM) renderDiary(LM); });
+})();
+$("dChips").addEventListener("click", function(e){
+  var b = e.target.closest("button");
+  if (!b || !b.dataset.e) return;
+  var i = dSel.indexOf(b.dataset.e);
+  if (i >= 0) dSel.splice(i, 1); else dSel.push(b.dataset.e);
+  dChipsUi();
+});
+$("dCancel").addEventListener("click", resetForm);
+$("dSave").addEventListener("click", function(){
+  var text = $("dText").value.trim(), day = Math.round(parseFloat($("dDay").value));
+  if (isNaN(day) || day < 1 || day > 730) { alert("Укажи номер дня"); return; }
+  if (!text && !dSel.length) { alert("Напиши что-нибудь или выбери эмоцию"); return; }
+  snap();
+  if (dEdit !== null) {
+    var ent = S.diary.filter(function(x){ return x.id === dEdit; })[0];
+    if (ent) { ent.d = day; ent.text = text; ent.em = dSel.slice(); }
+  } else S.diary.push({ id: Date.now(), d: day, text: text, em: dSel.slice() });
+  save(); resetForm(); render();
+});
+$("dList").addEventListener("click", function(e){
+  var b = e.target.closest("button");
+  if (!b || !b.dataset.id) return;
+  var id = +b.dataset.id;
+  if (b.dataset.k === "ddel") {
+    if (!confirm("Удалить запись?")) return;
+    snap(); S.diary = S.diary.filter(function(x){ return x.id !== id; }); save(); render();
+  } else if (b.dataset.k === "dedit") {
+    var en = S.diary.filter(function(x){ return x.id === id; })[0];
+    if (!en) return;
+    dEdit = id; dSel = (en.em || []).slice();
+    $("dText").value = en.text; $("dDay").value = en.d;
+    $("dFormTitle").textContent = "Редактирование записи";
+    $("dSave").textContent = "Сохранить изменения";
+    $("dCancel").style.display = "";
+    dChipsUi();
+    $("dForm").scrollIntoView({ block: "start" });
+  }
+});
+
+/* apply fact to plan */
+document.getElementById("forecast").addEventListener("click", function(e){
+  var b = e.target.closest("button");
+  if (!b || b.id !== "applyFact") return;
+  var a = Math.round(parseFloat(b.dataset.avg) * 100) / 100;
+  if (!(a > 0)) return;
+  if (!confirm("Поставить " + a + "% в день для всех ещё не отмеченных дней? Отмеченные дни не изменятся. Можно отменить кнопкой ↶.")) return;
+  snap(); S.defpct = a;
+  for (var j = 0; j < 730; j++) if (!S.status[j]) delete S.pcts[j];
+  save(); syncInputs(); render();
+});
+
+var tipTimer = null;
+document.getElementById("barwrap").addEventListener("click", function(e){
+  if (!LM) return;
+  var bar = this.querySelector(".bar"), rect = bar.getBoundingClientRect();
+  var W = rect.width, x = Math.max(0, Math.min(W, e.clientX - rect.left));
+  var best = null, bd = 1e12;
+  msList().forEach(function(ms){ var d = Math.abs(ms / S.goal * W - x); if (d < bd) { bd = d; best = ms; } });
+  var tip = document.getElementById("tip"), text;
+  if (best !== null && bd <= 22) text = rub(best) + " · " + msInfo(LM, best);
+  else text = "Сейчас " + rub(LM.cur) + " · " + (Math.round(Math.max(0, Math.min(100, (LM.cur + LM.wdDone) / S.goal * 100)) * 100) / 100) + "% пути";
+  tip.textContent = text;
+  tip.classList.add("on");
+  var w = tip.offsetWidth;
+  tip.style.left = Math.max(0, Math.min(x - w / 2, W - w)) + "px";
+  clearTimeout(tipTimer);
+  tipTimer = setTimeout(function(){ tip.classList.remove("on"); }, 3500);
+});
+document.addEventListener("click", function(e){
+  if (!e.target.closest || !e.target.closest("#barwrap")) document.getElementById("tip").classList.remove("on");
+});
+
+var PINKEY = "goal-path-pin", pinMem = "";
+function hashPin(v){ var h = 5381, t = "gp:" + v, i; for (i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0; return String(h); }
+function getPin(){ try { return localStorage.getItem(PINKEY) || ""; } catch(e){ return pinMem; } }
+function putPin(v){ pinMem = v; try { if (v) localStorage.setItem(PINKEY, v); else localStorage.removeItem(PINKEY); } catch(e){} }
+function pinUi(){ document.getElementById("pinState").textContent = getPin() ? "PIN включён" : "PIN выключен"; }
+function lock(){
+  if (!getPin()) return;
+  document.getElementById("lockIn").value = "";
+  document.getElementById("lockErr").textContent = "";
+  document.getElementById("lock").classList.add("on");
+}
+function tryUnlock(){
+  var inp = document.getElementById("lockIn");
+  if (hashPin(inp.value) === getPin()) { document.getElementById("lock").classList.remove("on"); inp.value = ""; }
+  else { document.getElementById("lockErr").textContent = "Неверный PIN"; inp.value = ""; }
+}
+document.getElementById("lockBtn").addEventListener("click", tryUnlock);
+document.getElementById("lockIn").addEventListener("keydown", function(e){ if (e.key === "Enter") tryUnlock(); });
+document.getElementById("pinSet").addEventListener("click", function(){
+  var a = document.getElementById("pin1").value, b = document.getElementById("pin2").value;
+  if (!/^\d{4,8}$/.test(a)) { alert("PIN — от 4 до 8 цифр"); return; }
+  if (a !== b) { alert("PIN не совпадает"); return; }
+  putPin(hashPin(a));
+  document.getElementById("pin1").value = ""; document.getElementById("pin2").value = "";
+  pinUi(); alert("PIN установлен");
+});
+document.getElementById("pinOff").addEventListener("click", function(){
+  if (!getPin()) return;
+  if (!confirm("Убрать PIN?")) return;
+  putPin(""); pinUi();
+});
+var hiddenAt = 0;
+document.addEventListener("visibilitychange", function(){
+  if (document.hidden) hiddenAt = Date.now();
+  else if (getPin() && hiddenAt && Date.now() - hiddenAt > 5 * 60 * 1000) lock();
+});
+pinUi();
+lock();
+
+syncInputs();
+render();
+resetForm();
+updUndo();
+(function(){
+  var o = document.querySelector('tr[data-open="1"]');
+  if (o && o.scrollIntoView) setTimeout(function(){ o.scrollIntoView({ block: "center" }); }, 50);
+})();
+
+/* offline / install */
+if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); });
+}
+</script>
+</body>
+</html>
